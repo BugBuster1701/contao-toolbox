@@ -3,6 +3,7 @@
 
 namespace CyberSpectrum;
 
+use CyberSpectrum\Command\CleanUpTx;
 use Symfony\Component\Console;
 use Symfony\Component\Console\Application as BaseApplication;
 use Symfony\Component\Console\Command\HelpCommand;
@@ -12,11 +13,13 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use CyberSpectrum\Command\ConvertFromXliff;
 use CyberSpectrum\Command\ConvertToXliff;
-use CyberSpectrum\Command\DownloadTransifex;
-use CyberSpectrum\Command\UploadTransifex;
+use CyberSpectrum\Command\Transifex\DownloadTransifex;
+use CyberSpectrum\Command\Transifex\UploadTransifex;
 
 class ToolBoxApplication extends BaseApplication
 {
+	protected $home;
+
 	/**
 	 * {@inheritDoc}
 	 */
@@ -27,6 +30,7 @@ class ToolBoxApplication extends BaseApplication
 			new ConvertToXliff(),
 			new DownloadTransifex(),
 			new UploadTransifex(),
+			new CleanUpTx(),
 			new HelpCommand(),
 			new ListCommand(),
 		);
@@ -58,6 +62,8 @@ class ToolBoxApplication extends BaseApplication
 	/**
 	 * @param  InputInterface    $input
 	 *
+	 * @return string
+	 *
 	 * @throws \RuntimeException
 	 */
 	private function getNewWorkingDir(InputInterface $input)
@@ -70,4 +76,47 @@ class ToolBoxApplication extends BaseApplication
 
 		return $workingDir;
 	}
+
+	/**
+	 * Determine the home directory where cbt config files shall be stored.
+	 *
+	 * @throws \RuntimeException
+	 */
+	protected function getHome()
+	{
+		if (isset($this->home))
+		{
+			return $this->home;
+		}
+		// determine home dir
+		$home = getenv('CBT_HOME');
+		if (!$home) {
+			if (defined('PHP_WINDOWS_VERSION_MAJOR')) {
+				if (!getenv('APPDATA')) {
+					throw new \RuntimeException('The APPDATA or CBT_HOME environment variable must be set for cbt to run correctly');
+				}
+				$home = strtr(getenv('APPDATA'), '\\', '/') . '/CBT';
+			} else {
+				if (!getenv('HOME')) {
+					throw new \RuntimeException('The HOME or CBT_HOME environment variable must be set for cbt to run correctly');
+				}
+				$home = rtrim(getenv('HOME'), '/') . '/.config/ctb';
+			}
+		}
+
+		$this->home = $home;
+
+		return $home;
+	}
+
+	public function getConfig()
+	{
+		$dir = $this->getHome();
+		if (!file_exists($dir . '/config.json'))
+		{
+			return null;
+		}
+		return new JsonConfig($dir . '/config.json');
+	}
+
 }

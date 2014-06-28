@@ -2,8 +2,6 @@
 
 namespace CyberSpectrum\Translation\Contao;
 
-use CyberSpectrum\Translation\File as FileInterface;
-
 class File implements \IteratorAggregate
 {
 	/**
@@ -151,8 +149,6 @@ class File implements \IteratorAggregate
 	/**
 	 * Parse a language file into language strings.
 	 *
-	 * @param string $filename The file to read.
-	 *
 	 * @return void
 	 */
 	protected function load()
@@ -162,7 +158,7 @@ class File implements \IteratorAggregate
 		// We take everything at the beginning of the file until the closing of the first doc comment.
 		preg_match('#^(.+\*/)#sU', $data, $matches);
 
-		if (count($matches[0]))
+		if ($matches && count($matches[0]))
 		{
 			$this->head = $matches[0];
 			if (preg_match('#https://www.transifex.com/projects/p/(.*)/language/(.*)/#', $this->head, $match, PREG_OFFSET_CAPTURE))
@@ -214,6 +210,7 @@ class File implements \IteratorAggregate
 				var_export($this->getValue($key), true)
 			);
 		}
+		$buffer .= PHP_EOL;
 		$res = fopen($this->filename, 'wb');
 		fputs($res, $buffer);
 

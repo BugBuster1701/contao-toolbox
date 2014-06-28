@@ -1,8 +1,9 @@
 <?php
 
-namespace CyberSpectrum\Command;
+namespace CyberSpectrum\Command\Transifex;
 
 use CyberSpectrum\Transifex\Transport;
+use CyberSpectrum\Command\CommandBase;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -33,8 +34,18 @@ class TransifexBase extends CommandBase
 
 	protected function getLanguageBasePath()
 	{
-		return realpath($this->txlang);
+		$path = realpath($this->txlang);
+		if (!$path)
+		{
+			return $this->txlang;
+		}
+		return $path;
 	}
+
+    protected function isNotFileToSkip($basename)
+    {
+        return is_array($this->skipFiles) ? !in_array(substr($basename, 0, -4), $this->skipFiles) : true;
+    }
 
 	protected function getAllTxFiles($language)
 	{
@@ -43,7 +54,10 @@ class TransifexBase extends CommandBase
 		$files = array();
 		while ($iterator->valid())
 		{
-			if (!$iterator->isDot() && $iterator->isFile() && $iterator->getExtension() == 'xlf')
+			if (!$iterator->isDot()
+                && $iterator->isFile()
+                && $iterator->getExtension() == 'xlf'
+                && $this->isNotFileToSkip($iterator->getPathname()))
 			{
 				$files[$iterator->getPathname()] = $iterator->getFilename();
 			}
@@ -60,7 +74,11 @@ class TransifexBase extends CommandBase
 		$user = $input->getOption('user');
 		if (!$user)
 		{
-			if ($user = getenv('transifexuser'))
+			if ($user = $this->getTransifexConfigValue('/user'))
+			{
+				$this->writelnVerbose($output, 'Using transifex user specified in config.');
+			}
+			elseif ($user = getenv('transifexuser'))
 			{
 				$this->writelnVerbose($output, 'Using transifex user specified in environment.');
 			}
@@ -69,7 +87,7 @@ class TransifexBase extends CommandBase
 				/** @var \Symfony\Component\Console\Helper\DialogHelper $dialog */
 				$dialog = $this->getHelperSet()->get('dialog');
 
-				if (!($user = $dialog->ask($output, 'User:')))
+				if (!($user = $dialog->ask($output, 'Transifex user:')))
 				{
 					$this->writelnAlways($output, '<error>Error: no transifex user specified, exiting.</error>');
 					return;
@@ -85,7 +103,11 @@ class TransifexBase extends CommandBase
 
 		if (!$pass)
 		{
-			if ($pass = getenv('transifexpass'))
+			if ($pass = $this->getTransifexConfigValue('/pass'))
+			{
+				$this->writelnVerbose($output, 'Using transifex password specified in config.');
+			}
+			elseif ($pass = getenv('transifexpass'))
 			{
 				$this->writelnVerbose($output, 'Using transifex password specified in environment.');
 			}
@@ -94,7 +116,7 @@ class TransifexBase extends CommandBase
 				/** @var \Symfony\Component\Console\Helper\DialogHelper $dialog */
 				$dialog = $this->getHelperSet()->get('dialog');
 
-				if (!($pass = $dialog->askHiddenResponse($output, 'Password:')))
+				if (!($pass = $dialog->askHiddenResponse($output, 'Transifex password:')))
 				{
 					$this->writelnAlways($output, '<error>Error: no transifex user password specified, exiting.</error>');
 					return;

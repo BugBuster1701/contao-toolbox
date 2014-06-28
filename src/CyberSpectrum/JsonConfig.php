@@ -25,7 +25,7 @@ class JsonConfig
 	{
 		if (!($sub = array_shift($path)) || !isset($scope[$sub]))
 		{
-			throw new \InvalidArgumentException('Error: config value not set.');
+			return null;
 		}
 
 		if (!$path)
@@ -46,10 +46,5 @@ class JsonConfig
 		}
 
 		return $this->scanTo($chunks, $this->data);
-	}
-
-	public function getTransifexPrefix()
-	{
-		return $this->getConfigValue('/extra/contao/transifex/prefix');
 	}
 }

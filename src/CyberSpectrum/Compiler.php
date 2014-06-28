@@ -58,6 +58,8 @@ class Compiler
 		$finder->files()
 			->ignoreVCS(true)
 			->name('*.php')
+			->name('*.pem')
+			->name('*.pem.md5')
 			->exclude('Tests')
 			->in(__DIR__.'/../../vendor/symfony/')
 			->in(__DIR__.'/../../vendor/guzzle/')
@@ -68,6 +70,7 @@ class Compiler
 		}
 
 		$this->addFile($phar, new \SplFileInfo(__DIR__.'/../../vendor/autoload.php'));
+		$this->addFile($phar, new \SplFileInfo(__DIR__.'/../../vendor/composer/autoload_psr4.php'));
 		$this->addFile($phar, new \SplFileInfo(__DIR__.'/../../vendor/composer/autoload_namespaces.php'));
 		$this->addFile($phar, new \SplFileInfo(__DIR__.'/../../vendor/composer/autoload_classmap.php'));
 		$this->addFile($phar, new \SplFileInfo(__DIR__.'/../../vendor/composer/autoload_real.php'));

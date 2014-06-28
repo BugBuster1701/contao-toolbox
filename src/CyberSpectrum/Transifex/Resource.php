@@ -15,7 +15,7 @@ class Resource extends BaseObject
 
 	protected $i18n_type;
 
-	protected $category;
+	protected $categories;
 
 	protected $content;
 
@@ -73,14 +73,14 @@ class Resource extends BaseObject
 		return $this->slug;
 	}
 
-	public function setCategory($category)
+	public function setCategories($categories)
 	{
-		$this->category = $category;
+		$this->categories = $categories;
 	}
 
-	public function getCategory()
+	public function getCategories()
 	{
-		return $this->category;
+		return $this->categories;
 	}
 
 	public function setI18nType($i18n_type)
@@ -165,7 +165,7 @@ class Resource extends BaseObject
 
 	public function setFromResult($data)
 	{
-		$this->setCategory($data['category']);
+		$this->setCategories($data['categories']);
 		$this->setI18nType($data['i18n_type']);
 		$this->setSourceLanguageCode($data['source_language_code']);
 		$this->setName($data['name']);
@@ -250,7 +250,7 @@ class Resource extends BaseObject
 			'project/%s/resource/%s',
 			$this->ensureParameter('project'),
 			$this->ensureParameter('slug')
-		), array('details' => '1'));
+		), array('details' => ''));
 
 		$this->setFromResult($response);
 	}
@@ -270,7 +270,7 @@ class Resource extends BaseObject
 	public function fetchTranslation($langcode, $mode = 'reviewed')
 	{
 		$parameters = array(
-			'file' => 1,
+			'file' => '',
 			'mode' => $mode
 		);
 
