@@ -20,3 +20,6 @@ ctb.phar
 
 # build
 build/
+
+composer.phar
+
