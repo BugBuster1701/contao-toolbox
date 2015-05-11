@@ -187,6 +187,12 @@ class File implements \IteratorAggregate
 		foreach ($keys as $key)
 		{
 			$tokens     = explode('.', $key);
+			// Handle keys with dots
+			if ($tokens[0] == 'tl_layout' && $tokens[2] == 'css') 
+			{
+				$tokens = array($tokens[0], $tokens[1] . '.' . $tokens[2], $tokens[3]);
+			}
+			
 			$langPrefix = '$GLOBALS[\'TL_LANG\']';
 			foreach ($tokens as $token)
 			{
