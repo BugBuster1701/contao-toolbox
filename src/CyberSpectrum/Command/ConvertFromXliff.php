@@ -134,5 +134,7 @@ class ConvertFromXliff extends ConvertBase
 				$this->writelnVerbose($output, sprintf('deleting obsolete file <info>%s</info>', $file));
 			}
 		}
+		//lösche leeres Verzeichnis wenn es denn leer ist
+		@rmdir($dstDir);//Exception Unterdrückung bei nicht leerem Verzeichnis
 	}
 }
