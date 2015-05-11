@@ -272,6 +272,7 @@ class Resource extends BaseObject
 		$parameters = array(
 			'file' => '',
 			'mode' => $mode
+		   //,'minimum_perc'=>85
 		);
 
 		return $this->execute(sprintf(
