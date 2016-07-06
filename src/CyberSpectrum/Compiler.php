@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * This toolbox provides easy ways to generate .xlf (XLIFF) files from Contao language files, push them to transifex
+ * and pull translations from transifex and convert them back to Contao language files.
+ *
+ * @package      cyberspectrum/contao-toolbox
+ * @author       Christian Schiffler <c.schiffler@cyberspectrum.de>
+ * @author       Tristan Lins <tristan.lins@bit3.de>
+ * @copyright    CyberSpectrum
+ * @license      LGPL-3.0+.
+ * @filesource
+ */
+
 namespace CyberSpectrum;
 
 use Symfony\Component\Finder\Finder;
@@ -10,14 +22,17 @@ use Symfony\Component\Process\Process;
  */
 class Compiler
 {
-	/**
-	 * Compiles composer into a single phar file
-	 *
-	 * Based upon Compiler from composer.
-	 *
-	 * @throws \RuntimeException
-	 * @param  string            $pharFile The full path to the file to create
-	 */
+    /**
+     * Compiles composer into a single phar file.
+     *
+     * Based upon Compiler from composer.
+     *
+     * @param string $pharFile The full path to the file to create.
+     *
+     * @return void
+     *
+     * @throws \RuntimeException Upon error.
+     */
 	public function compile($pharFile = 'ctb.phar')
 	{
 		if (file_exists($pharFile)) {
@@ -26,7 +41,10 @@ class Compiler
 
 		$process = new Process('git log --pretty="%H" -n1 HEAD', __DIR__);
 		if ($process->run() != 0) {
-			throw new \RuntimeException('Can\'t run git log. You must ensure to run compile from git repository clone and that git binary is available.');
+            throw new \RuntimeException(
+                'Can\'t run git log. You must ensure to run compile from git repository clone and that git binary ' .
+                'is available.'
+            );
 		}
 		$this->version = trim($process->getOutput());
 
@@ -46,8 +64,7 @@ class Compiler
 			->name('*.php')
 			->notName('Compiler.php')
 			->notName('ClassLoader.php')
-			->in(__DIR__.'/..')
-		;
+			->in(__DIR__.'/..');
 
 		foreach ($finder as $file) {
 			$this->addFile($phar, $file);
@@ -62,18 +79,18 @@ class Compiler
 			->name('*.pem.md5')
 			->exclude('Tests')
 			->in(__DIR__.'/../../vendor/symfony/')
-			->in(__DIR__.'/../../vendor/guzzle/')
-		;
+			->in(__DIR__.'/../../vendor/guzzle/');
 
 		foreach ($finder as $file) {
 			$this->addFile($phar, $file);
 		}
 
-		$this->addFile($phar, new \SplFileInfo(__DIR__.'/../../vendor/autoload.php'));
-		$this->addFile($phar, new \SplFileInfo(__DIR__.'/../../vendor/composer/autoload_psr4.php'));
-		$this->addFile($phar, new \SplFileInfo(__DIR__.'/../../vendor/composer/autoload_namespaces.php'));
-		$this->addFile($phar, new \SplFileInfo(__DIR__.'/../../vendor/composer/autoload_classmap.php'));
-		$this->addFile($phar, new \SplFileInfo(__DIR__.'/../../vendor/composer/autoload_real.php'));
+		$this->addFile($phar, new \SplFileInfo(__DIR__ . '/../../vendor/autoload.php'));
+		$this->addFile($phar, new \SplFileInfo(__DIR__ . '/../../vendor/composer/autoload_psr4.php'));
+		$this->addFile($phar, new \SplFileInfo(__DIR__ . '/../../vendor/composer/autoload_namespaces.php'));
+		$this->addFile($phar, new \SplFileInfo(__DIR__ . '/../../vendor/composer/autoload_classmap.php'));
+		$this->addFile($phar, new \SplFileInfo(__DIR__ . '/../../vendor/composer/autoload_real.php'));
+		$this->addFile($phar, new \SplFileInfo(__DIR__ . '/../../vendor/composer/autoload_files.php'));
 		if (file_exists(__DIR__.'/../../vendor/composer/include_paths.php')) {
 			$this->addFile($phar, new \SplFileInfo(__DIR__.'/../../vendor/composer/include_paths.php'));
 		}
@@ -85,12 +102,22 @@ class Compiler
 
 		$phar->stopBuffering();
 
-		// disabled for interoperability with systems without gzip ext
-		// $phar->compressFiles(\Phar::GZ);
+		// disabled for interoperability with systems without gzip ext: $phar->compressFiles(\Phar::GZ);
 
 		unset($phar);
 	}
 
+	/**
+	 * Add a file to the phar.
+	 *
+	 * @param \Phar        $phar  The phar file.
+	 *
+	 * @param \SplFileInfo $file  The file name.
+	 *
+	 * @param bool|true    $strip Flag if white spaces shall be stripped from the file (default: true).
+	 *
+	 * @return void
+	 */
 	private function addFile($phar, $file, $strip = true)
 	{
 		$path = str_replace(dirname(dirname(__DIR__)).DIRECTORY_SEPARATOR, '', $file->getRealPath());
@@ -107,6 +134,13 @@ class Compiler
 		$phar->addFromString($path, $content);
 	}
 
+	/**
+	 * Add the binary file.
+	 *
+	 * @param \Phar $phar The phar file.
+	 *
+	 * @return void
+	 */
 	private function addBinFile($phar)
 	{
 		$content = file_get_contents(__DIR__.'/../../bin/ctb');
@@ -114,12 +148,13 @@ class Compiler
 		$phar->addFromString('bin/ctb', $content);
 	}
 
-	/**
-	 * Removes whitespace from a PHP source string while preserving line numbers.
-	 *
-	 * @param  string $source A PHP string
-	 * @return string The PHP string with the whitespace removed
-	 */
+    /**
+     * Removes whitespace from a PHP source string while preserving line numbers.
+     *
+     * @param string $source A PHP string.
+     *
+     * @return string The PHP string with the whitespace removed.
+     */
 	private function stripWhitespace($source)
 	{
 		if (!function_exists('token_get_all')) {
@@ -148,6 +183,11 @@ class Compiler
 		return $output;
 	}
 
+	/**
+	 * Build the stub for the phar.
+	 *
+	 * @return string
+	 */
 	private function getStub()
 	{
 		$stub = <<<'EOF'
