@@ -80,7 +80,7 @@ class File implements \IteratorAggregate
  * Translations are managed using Transifex. To create a new translation
  * or to help to maintain an existing one, please register at transifex.com.
  *
- * @link http://help.transifex.com/intro/translating.html
+ * @link http://docs.transifex.com/faq/#translating
  * @link https://www.transifex.com/projects/p/$$project$$/language/$$lang$$/
  *
  * @license http://www.gnu.org/licenses/lgpl-3.0.html LGPL
@@ -188,7 +188,7 @@ class File implements \IteratorAggregate
 		{
 			$tokens     = explode('.', $key);
 			// Handle keys with dots
-			if ($tokens[0] == 'tl_layout' && $tokens[2] == 'css') 
+			if ($tokens[0] == 'tl_layout' && isset($tokens[2]) && $tokens[2] == 'css') 
 			{
 				$tokens = array($tokens[0], $tokens[1] . '.' . $tokens[2], $tokens[3]);
 			}
